@@ -166,7 +166,7 @@ def random_walk(ub, lb):
     """
     pos = 0
     positions = [0]
-    steps = [0]
+    steps = []
     while (pos != ub) and (pos != lb):
         x = random.choice(["heads", "tails"])
         if x == "heads":
