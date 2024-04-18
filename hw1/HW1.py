@@ -167,23 +167,25 @@ def random_walk(ub, lb):
     pos = 0
     positions = [0]
     steps = []
-    while (pos != ub) and (pos != lb):
+    while True:
         x = random.choice(["heads", "tails"])
         if x == "heads":
             pos += 1
             positions.append(pos)
             steps.append(1)
         elif x == "tails":
-            pos += -1
+            pos -= 1
             positions.append(pos)
             steps.append(-1)
         else:
             print("error")
         if pos == ub:
             print("Upper bound at {} reached".format(ub))
+            positions = positions[:-1]
             break
         elif pos == lb:
             print("Lower bound at {} reached".format(lb))
+            positions = positions[:-1]
             break
         else:
             pass            
