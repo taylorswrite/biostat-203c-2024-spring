@@ -72,13 +72,14 @@ def gimme_an_odd_number():
         usr_list: A list
     """
     usr_list = []
+    print("")
     while True:
         usr = int(input("Please enter an integer."))
-        if usr % 2 == 0:
+        if usr % 2 == 1:
             usr_list.append(usr)
+            return usr_list
         else:
             usr_list.append(usr)
-            return str(usr_list)
             
 # Problem 4
 
