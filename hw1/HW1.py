@@ -167,7 +167,7 @@ def random_walk(ub, lb):
     pos = 0
     positions = [0]
     steps = []
-    while (pos <= ub) and (pos >= lb):
+    while (pos != ub+1) and (pos != lb-1):
         x = random.choice(["heads", "tails"])
         if x == "heads":
             pos += 1
@@ -178,7 +178,10 @@ def random_walk(ub, lb):
             positions.append(pos)
             steps.append(-1)
         else:
-            print('error')          
+            print("error")
+        if pos < lb or pos > ub:
+            positions.append(pos)
+            steps.append(1)          
     return pos, positions, steps
 
 
