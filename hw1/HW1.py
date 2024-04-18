@@ -4,7 +4,7 @@
 # Date:
 
 import random # This is only needed in Problem 5
-random.seed(1)
+# random.seed(1)
 
 # Problem 1
 
@@ -29,7 +29,7 @@ def print_s_parts(s):
     print('\n'.join(sos))
 
 def print_s_some(s):
-    print('\n'.join(sorted(s.split('\n'), key = len)[:-1]))
+    print('\n'.join(sorted(s.split('\n'), key = len, reverse = True)[1:]))
 
 def print_s_change(s):
     sc = s.replace('math', 'data science')
@@ -47,10 +47,14 @@ def make_count_dictionary(L):
     Returns:
         D: A dictionary
     """
-    d_k = sorted(list(set(L)))
-    d_v = []
+    L_c = []
+    d_k = []
+    d_v = []       
+    for i in L:
+        L_c += str(i)
+    d_k = sorted(list(set(L_c)))
     for i in d_k:
-        d_v.append(L.count(i))
+        d_v.append(L_c.count(i))
     D = dict(zip(d_k, d_v))
     return D
 
