@@ -4,6 +4,7 @@
 # Date:
 
 import random # This is only needed in Problem 5
+random.seed(1)
 
 # Problem 1
 
@@ -15,7 +16,6 @@ def print_s(s):
         s: A string.
     Returns:
         None
-    ---
     """
     print(s)
 
@@ -25,27 +25,27 @@ def print_s_lines(s):
     print(s.replace(': ', '\n'))
 
 def print_s_parts(s):
-    print('\n'.join(s.replace(': ', '\n').split(sep = '\n')[::2]))
+    sos = s.replace(' ', '').replace(':', '\n').split(sep = '\n')[::2]
+    print('\n'.join(sos))
 
 def print_s_some(s):
     print('\n'.join(sorted(s.split('\n'), key = len)[:-1]))
 
 def print_s_change(s):
     sc = s.replace('math', 'data science')
-    sc = s.replace('long division', 'machine learning')
+    sc = sc.replace('long division', 'machine learning')
     print(sc)
 
 # Problem 2 
 
 def make_count_dictionary(L):
     """
-    Returns a dict of the number of occurance of an object in a list.
+    Return a dictionary of the frequency of characters in a list.
     ---
     Args:
-        L: A string.
+        L: A list
     Returns:
-        D: A dictionary.
-    ---
+        D: A dictionary
     """
     d_k = sorted(list(set(L)))
     d_v = []
@@ -58,13 +58,13 @@ def make_count_dictionary(L):
 
 def gimme_an_odd_number():
     """
-    Returns a list of user inputed integers. Loops terminates when the user 
-    enters an odd number.
+    A loop that terminates when a user inputs an odd number.
+    Returns a list of user inputted numbers.
     ---
     Args:
-        none
+        None
     Returns:
-        usr_list: A list.
+        usr_list: A list
     """
     usr_list = []
     while True:
@@ -78,36 +78,101 @@ def gimme_an_odd_number():
 # Problem 4
 
 def get_triangular_numbers(k):
-    ''' WRITE YOUR OWN DOCSTRING HERE
-    '''
-    pass # replace with your code
-
+    """
+    Returns a list of the number of objects needed to make
+    a k-sided, equalateral triangle from 1 to k.
+    ---
+    Args:
+        k: An Integer
+    Returns:
+        num_list: A list
+    """
+    num_list = []
+    for i in range(1, k + 1):
+        num_list.append(int(i * (i + 1) / 2))
+    return num_list
 
 def get_consonants(s):
-    ''' WRITE YOUR OWN DOCSTRING HERE
-    '''
-    pass # replace with your code
+    """
+    Returns a list of characters that are not a vowel, space, comma, or period.
+    ---
+    Args:
+        s: A string
+    Returns:
+        cp_list: A list
+    """
+    rm_list = ["a", "e", "i", "o", "u", " ", ",", ".",]
+    cp_list = []
+    for i in s:
+        if i in rm_list:
+            pass
+        else:
+            cp_list.append(i)
+    return cp_list
 
 
 def get_list_of_powers(X, k):
-    ''' WRITE YOUR OWN DOCSTRING HERE
-    '''
-    pass # replace with your code
+    """
+    Returns a 2 dimentional list of integers. Each element is a list
+    of the powers of an element of X from 0 to k.
+    ---
+    Args:
+        X: List of integers
+        k: An Integer
+    Returns:
+        L: A 2-dimentional list
+    """
+    L = []
+    for i in X:
+        L_sub = []
+        for j in range(0, k + 1):
+            L_sub.append(i**j)
+        L.append(L_sub)
+    return L
 
 
-def get_list_of_even_powers(L, k):
-    ''' WRITE YOUR OWN DOCSTRING HERE
-    '''
-    pass # replace with your code
+def get_list_of_even_powers(X, k):
+    """
+    Returns a 2 dimentional list of integers. Each element is a list
+    of the even powers of an element of X from 0 to k.
+    ---
+    Args:
+        X: List of integers
+        k: An Integer
+    Returns:
+        L: A 2-dimentional list
+    """
+    L = []
+    for i in X:
+        L_sub = []
+        for j in range(0, k + 1, 2):
+            L_sub.append(i**j)
+        L.append(L_sub)
+    return L
 
 
 
 # Problem 5
 
 def random_walk(ub, lb):
-    ''' WRITE YOUR OWN DOCSTRING HERE
-    '''
-    pass # replace with your code
+    """
+    Returns the last postion, position history, and step history for a fair
+    coin toss where head moves forwards (+1) and tails moves backwards (-1).
+    """
+    pos = 0
+    positions = [0]
+    steps = []
+    for _ in range(lb, ub + 1):
+        x = random.choice(["heads", "tails"])
+        if x == "heads":
+            pos += 1
+            positions.append(pos)
+            steps.append(1)
+        else:
+            pos += -1
+            positions.append(pos)
+            steps.append(-1)            
+    return pos, positions, steps
 
 
 # If you uncomment these two lines, you can run 
