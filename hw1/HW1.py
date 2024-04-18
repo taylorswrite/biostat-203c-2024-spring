@@ -181,17 +181,12 @@ def random_walk(ub, lb):
             print("error")
         if pos == ub:
             print("Upper bound at {} reached".format(ub))
-            positions.append(pos)
-            # steps.append(1)
             break
         elif pos == lb:
             print("Lower bound at {} reached".format(lb))
-            positions.append(pos)
-            # steps.append(1)
             break
         else:
-            pass
-            
+            pass            
     return pos, positions, steps
 
 
