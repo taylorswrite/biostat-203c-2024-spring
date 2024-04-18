@@ -51,8 +51,9 @@ def make_count_dictionary(L):
     d_k = []
     d_v = []       
     for i in L:
-        L_c += str(i)
-    d_k = sorted(list(set(L_c)))
+        L_c.append(str(i))
+        if i not in d_k:
+            d_k.append(str(i))
     for i in d_k:
         d_v.append(L_c.count(i))
     D = dict(zip(d_k, d_v))
@@ -72,13 +73,13 @@ def gimme_an_odd_number():
     """
     usr_list = []
     while True:
-        usr = int(input('Please enter an integer.'))
-        if usr % 2 == 1:
+        usr = int(input("Please enter an integer."))
+        if usr % 2 == 0:
+            usr_list.append(usr)
+        else:
             usr_list.append(usr)
             return usr_list
-        else:
-            usr_list.append(usr)# replace with your code
-
+            
 # Problem 4
 
 def get_triangular_numbers(k):
