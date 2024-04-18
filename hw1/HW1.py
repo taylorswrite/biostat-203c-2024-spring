@@ -165,7 +165,7 @@ def random_walk(ub, lb):
     coin toss where head moves forwards (+1) and tails moves backwards (-1).
     """
     pos = 0
-    positions = [0]
+    positions = []
     steps = []
     while (pos < ub) and (pos > lb):
         x = random.choice(["heads", "tails"])
