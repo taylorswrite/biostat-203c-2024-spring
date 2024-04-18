@@ -51,9 +51,9 @@ def make_count_dictionary(L):
     d_k = []
     d_v = []       
     for i in L:
-        L_c.append(str(i))
+        L_c.append(i)
         if i not in d_k:
-            d_k.append(str(i))
+            d_k.append(i)
     for i in d_k:
         d_v.append(L_c.count(i))
     D = dict(zip(d_k, d_v))
@@ -73,7 +73,7 @@ def gimme_an_odd_number():
     """
     usr_list = []
     while True:
-        usr = int(input("Please enter an integer."))
+        usr = int(input("Please enter an integer"))
         if usr % 2 == 0:
             usr_list.append(usr)
         else:
