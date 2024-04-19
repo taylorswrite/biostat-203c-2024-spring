@@ -1,7 +1,7 @@
 # PIC 16A HW1
-# Name:
-# Collaborators:
-# Date:
+# Name: William Martinez
+# Collaborators: None
+# Date: 4/18/24
 
 import random # This is only needed in Problem 5
 # random.seed(1)
