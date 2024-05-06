@@ -73,7 +73,7 @@ def markov_text(s, n, length = 100, seed = "Emma Woodhouse"):
     gen_text = seed # start the generated text with seed.
     ## Generated Text Loop:
     # Loop until gen_text is equal or greater than length.
-    while len(gen_text) < length:
+    while len(gen_text) < (length + len(seed)):
         ## Initialization of Variables in Loop.
         # Theses variables will re-initialize with each loop
         last_ngram = gen_text[-n:] # Last ngram from gen_text

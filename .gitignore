@@ -2,3 +2,5 @@
 *__pycache__
 *.ipynb_checkpoint
 *.DS_Store
+*__pycache__
+*.vscode
