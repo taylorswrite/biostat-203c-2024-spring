@@ -1,6 +1,8 @@
 #system files
 *__pycache__
-*.ipynb_checkpoint
 *.DS_Store
 *__pycache__
 *.vscode
+*.ipynb_checkpoints
+*.csv*
+*.parquet*
