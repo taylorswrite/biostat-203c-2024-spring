@@ -2,8 +2,6 @@
 # coding: utf-8
 
 # # Homework 3
-# ### Name: William Martinez
-# ### Collaborators: None
 # 
 # Due date: May 19, 2024
 # 
@@ -41,7 +39,7 @@ import pyarrow.compute as pc
 import pyarrow.parquet as pq
 from matplotlib import pyplot as plt
 
-# Create a syslink named `mimic` in working directory.
+# Create a syslink named `mimic` in working directory. 
 pth_hsp = './mimic/hosp/'
 pth_icu = './mimic/icu/'
 
@@ -73,6 +71,11 @@ lab_itemid = [50912, 50971, 50983, 50902, 50882, 51221, 51301, 50931]
 
 # ### ANSWER 1A
 
+# #### Documentation
+# rw  takes a positive integer, `n`, and returns a list of all positions from a random walk of `n` steps where each step is decided by a coin flip. If the coin flip results in heads, step forward. If the coin flip results in tails, step backward. The variable, `pos`, is the current position; therefore, append that position after each step.
+# 
+# If n is not an integer or `n` is less than zero, the user will be prompted to enter a new `n`.
+
 # In[2]:
 
 
@@ -85,6 +88,15 @@ def rw(n):
   Returns:
     positions: A list of poistions.
   """
+  # Input Catch. Must be int.
+  while not isinstance(n, int) or n < 0:
+    user = input("Enter a positive integer for n: ")
+    # try to make users input an int
+    try:
+        n = int(user)
+    # Supply back into the while while loop if error
+    except ValueError:
+        n
   pos = 0 # Initialized current position
   positions = [] # Empty list. Track positions after a step.
   while len(positions) < n:
@@ -98,7 +110,46 @@ def rw(n):
   return positions
 
 rw(10)
-    
+
+
+# #### Robustness Test
+
+# In[3]:
+
+
+rw("Oops")
+
+
+# In[4]:
+
+
+rw(-10)
+
+
+# In[5]:
+
+
+rw(10.0)
+
+
+# In[6]:
+
+
+# Comprehensive test. All test in list should result in no errors
+tests = [0, 1, 5, 30, 50]
+# Store results in a dictionary.
+rw_results = dict()
+# loop through tests and store in dictionary
+for test in tests:
+  # label for the values
+  name = f"{test} Random Positions"
+  # Store the result in the dictionary
+  rw_results[name] = rw(test)
+
+# Loop through dictionary and print the results in a readable format
+# also print the length of the object
+for key, val in rw_results.items():
+  print(f"{key} (length = {len(val)}):\n{val}")
 
 
 # ### (B). 
@@ -119,13 +170,35 @@ rw(10)
 
 # ### Answer 1B
 
-# In[3]:
+# #### Documentation
+# `rw2` is a lambda function that uses numpy to perform the same operations as `rw`. Because of numpy's vast number of methods that can be applied on a numpy array, the function was able to be simplified into one line without the input catch error. `rw2` uses the numpy and random libraries to create an array of -1 and 1 with replacement which signify a coin flip of heads and tails. The cumulative sum of the numpy array acts like the current position of the random walk.
+
+# In[7]:
 
 
 # Return positions from n random steps
+# random choice is used like a coin flip 1=heads -1=tails
+# cumsum is used to get the position after each step.
 rw2 = lambda n: np.random.choice([-1, 1], size=n, replace=True).cumsum()
 
 rw2(10)
+
+
+# In[8]:
+
+
+# list of error free tests because rw2 does not have an input catch.
+tests = [0, 1, 5, 30, 50]
+# store results in dictionary
+rw_results = dict()
+# loop through the tests and store the results in the dictionary
+for test in tests:
+  name = f"{test} Random Positions"
+  rw_results[name] = rw2(test)
+# loop thought the dictionary and print the results in a readable format.
+# Also output the length of the object.
+for key, val in rw_results.items():
+  print(f"{key} (length = {len(val)}):\n{list(val)}")
 
 
 # ### (C).
@@ -134,16 +207,40 @@ rw2(10)
 
 # ### Answer 1C
 
-# In[4]:
+# In[9]:
 
 
 get_ipython().run_cell_magic('timeit', '', 'rw(10_000)\n')
 
 
-# In[5]:
+# In[10]:
+
+
+get_ipython().run_cell_magic('timeit', '', 'rw(1_000)\n')
+
+
+# In[11]:
+
+
+get_ipython().run_cell_magic('timeit', '', 'rw(100)\n')
+
+
+# In[12]:
 
 
 get_ipython().run_cell_magic('timeit', '', 'rw2(10_000)\n')
+
+
+# In[13]:
+
+
+get_ipython().run_cell_magic('timeit', '', 'rw2(1_000)\n')
+
+
+# In[14]:
+
+
+get_ipython().run_cell_magic('timeit', '', 'rw2(100)\n')
 
 
 # ### (D). 
@@ -153,6 +250,8 @@ get_ipython().run_cell_magic('timeit', '', 'rw2(10_000)\n')
 # ### ANSWER 1D
 # 
 # The function, `rw2()`, was 82% faster than the function, `rw()`. Built-in python list operations were used in `rw()` and numpy array operations were used in `rw2()`. The average run-times for `rw()` and `rw2()` were 61.1 µs and 362 µs, respectively. The numpy array function, `rw2()`, was easier to write, occupying only one line, and was more readable than the built-in python list operations in `rw()`.
+# 
+# For robustness, multiple values of an were supplied to the functions to test if different lengths resulted in differing results. from this test numpy was always significantly faster than using base python functions.
 
 # ### (E). 
 # 
@@ -189,7 +288,10 @@ get_ipython().run_cell_magic('timeit', '', 'rw2(10_000)\n')
 
 # ### Answer 1E
 
-# In[6]:
+# #### Documentation
+# `rw_d` uses the numpy library to list positions from a multi directional random walk. It takes two values. `d` describes the number of directions. `n`, describes the number of steps in each direction. Both `d` and `n` must be positive integers, but if positive integers are not supplied then the user is prompted to enter a new set. The biggest difference between `rw_d` and `rw2` is that the array is reshaped into the correct shape and a cumulative sum is applied along the vertical axis. 
+
+# In[102]:
 
 
 def rw_d(n, d):
@@ -202,6 +304,18 @@ def rw_d(n, d):
   Return:
     positions: An numpy array. The positions after step in a dimention.
   """
+  while not isinstance(n, int) or n < 0:
+    user_n = input("Enter a positive integer for n: ")
+    try:
+      n = int(user_n)
+    except ValueError:
+        pass
+  while not isinstance(d, int) or d < 0:
+    user_d = input("Enter a positive integer for d: ")
+    try:
+      d = int(user_d)
+    except ValueError:
+        pass
   positions = (
     np.random.choice(
       [-1, 1], # -1 for tails and 1 for heads.
@@ -212,7 +326,43 @@ def rw_d(n, d):
   )
   return positions
 
-rw_d(5, 3)
+rw_d(5,3)
+
+
+# #### Robustness Test
+
+# In[103]:
+
+
+rw_d('goggle', 2)
+
+
+# In[104]:
+
+
+rw_d(2, "bing")
+
+
+# In[105]:
+
+
+# list of tests to perform
+tests = [[0, 0], [1, 5],[10, 10],[10, 5]]
+# Store in dictionary
+rw_results = dict()
+# loop through tests
+for test in tests:
+  # for each list, [0]=n and [1]=d
+  n = test[0]
+  d = test[1]
+  # label the results
+  name = f"{test} Random Positions"
+  # store the results in dictionary
+  rw_results[name] = rw_d(n, d)
+# Loop through the dictionary and print the results in a readable format
+# Also add the shape of the array.
+for key, val in rw_results.items():
+  print(f"{key} (Shape = {val.shape}):\n{val}")
 
 
 # ### (F).
@@ -242,7 +392,7 @@ rw_d(5, 3)
 
 # ### Answer 1G
 
-# In[7]:
+# In[19]:
 
 
 # Plot 2-D Random Walk
@@ -261,14 +411,14 @@ plt.plot(W[:,0], W[:,1])
 # 
 # - Use the tags `-goh` to show permissions, size, and filename.
 
-# In[8]:
+# In[20]:
 
 
 # Hosp Files
 get_ipython().system('ls -goh ./mimic/hosp/')
 
 
-# In[9]:
+# In[21]:
 
 
 # ICU Files
@@ -281,24 +431,26 @@ get_ipython().system('ls -goh ./mimic/icu/')
 # 
 # _Note:_ If you start a cell with `%%time`, the runtime will be measured. 
 
-# In[10]:
+# In[22]:
 
 
+# this function is not required as part of the homework. The purpose of
+# This function is to calculate the percent differences of data ingestion 
+# methods.
 def percent_diff(i_time=None, f_time=None, i_mem=None, f_mem=None):
   """
   Print Pandas and Polars Comparison Metrics
   ---
-  Args:
+  Optional Args:
     i_time: A positive float. The runtime of a initial cell in s.
     f_time: A positive float. The runtime of a final cell in s.
-  Optional Args:
     i_mem: A positive float. Initial dataframe object memory usage in GB.
     f_mem: A positive float. Final dataframe object memory usage in GB.
   Return:
     None
   """
   if (i_time is not None) and (f_time is not None): # Check if empty
-    time_diff = round((f_time - i_time) / i_time * 100,3) # percent diff.
+    time_diff = round((f_time - i_time) / i_time * 100) # percent diff.
     if time_diff > 0: # if percent diff. is greater than 0 output text
       print(f"final runtime was {abs(time_diff)}% slower than initial.")
     elif time_diff < 0: # if percent diff. is less than 0 output text
@@ -310,7 +462,7 @@ def percent_diff(i_time=None, f_time=None, i_mem=None, f_mem=None):
   else:
     pass
   if (i_mem is not None) and (f_mem is not None): # Check if empty
-    mem_diff = round((f_mem - i_mem) / i_mem * 100,3) # percent diff
+    mem_diff = round((f_mem - i_mem) / i_mem * 100) # percent diff
     if mem_diff > 0: # if percent diff. is greater than 0 output text
       print(f"final df memory usage was {abs(mem_diff)}% more than initial.")
     elif mem_diff < 0: # if percent diff. is less than 0 output text
@@ -325,55 +477,63 @@ def percent_diff(i_time=None, f_time=None, i_mem=None, f_mem=None):
 
 # ### Answer 2A
 # 
+# #### Preface
+# 
+# It is more beneficial to compare the time and memory consumption of pandas to another method to better understand strengths and weaknesses of data ingestion methods therefore for each problem pandas will be compared to either polars or DuckDB. Runtime is a good metric to measure the performance of these libraries however, it is not consistent and will vary across systems and even within the same system depending on resource availability. Therefore the relative performance is a better metric than the absolute performance of these python libraries.
+# 
+# EDIT: The changes to the homework implimented on 5/6 disrupted the order of my test. Therefore, please don't markdown if the numbers changed significantly because the homework was significantly changed after I completed the assignment. Please don't change the homework after you disperse it. It is disruptive.
+# 
 # #### Pandas
 # 
 # The runtime to ingest `admissions.csv.gz` using pandas was 884 ms and the resulting data frame memory usage was 0.368 GB.
 # 
 # #### Polars
 # 
-# The runtime to ingest `admissions.csv.gz` using pandas was 214 ms and the resulting data frame memory usage was 4.8e-08 GB.
+# The runtime to ingest `admissions.csv.gz` using pandas was 214 ms and the resulting data frame memory usage was 0.362 GB.
 # 
 # #### Summary
 # 
-# Polars consumed less resources than pandas. The Polars runtime was __76% faster__ and the Polars data frame object memory usage was __100% less__ than Pandas.
+# Polars consumed less resources than pandas. The Polars runtime was __42% faster__ and the Polars data frame object memory usage was __2% less__ than Pandas. 
 
-# In[11]:
+# #### Description
+# Pandas was used to read in the admissions.csv.gz file from a symbolic link of the mimic data set located in the working directory.
 
-
-get_ipython().run_cell_magic('time', '', '# Read admissions using Pandas\ndf_pd_adm = pd.read_csv("./mimic/hosp/admissions.csv.gz")\n')
-
-
-# In[12]:
+# In[23]:
 
 
-print(round(sys.getsizeof(df_pd_adm)/10**9,3), "GB")
+get_ipython().run_cell_magic('time', '', '## Pandas\n# Read admissions using Pandas\ndf_pd_adm = pd.read_csv("./mimic/hosp/admissions.csv.gz")\n')
 
 
-# In[13]:
+# In[24]:
 
 
-get_ipython().run_cell_magic('time', '', '# Read admissions using Polars\ndf_pl_adm = pl.read_csv("./mimic/hosp/admissions.csv.gz")\n')
+# Print the memory usage of the pandas object
+print(round(sys.getsizeof(df_pd_adm)/10**9, 3), "GB")
 
 
-# In[14]:
+# #### Description
+# Polars was used to read in the admissions.csv.gz file from a symbolic link of the mimic data set located in the working directory. Results are documented in the answer above. To make the memory usage consistent, the polars data frame was converted to a pandas data frame.
+
+# In[25]:
 
 
-print(sys.getsizeof(df_pl_adm)/10**9, "GB")
+get_ipython().run_cell_magic('time', '', '## Polars\n# Read admissions using Polars then convert the Polars DataFrame (pl.DataFrame)\n# to a Pandas DataFrame (pd.DataFrame).\ndf_pl_adm = pl.read_csv("./mimic/hosp/admissions.csv.gz").to_pandas()\n')
 
 
-# In[15]:
+# In[26]:
+
+
+# Print the memory usage of the pandas object.
+# The pl.DataFrame was converted to a pd.DataFrame
+print(round(sys.getsizeof(df_pl_adm)/10**9, 3), "GB")
+
+
+# In[106]:
 
 
 # Initial: Pandas reading admissions.csv.gz
 # Final: Polars reading admissions.csv.gz
-percent_diff(i_time=0.878, i_mem=0.368, f_time=0.214, f_mem=4.8e-08)
-
-
-# In[16]:
-
-
-del df_pd_adm
-del df_pl_adm
+percent_diff(i_time=1.17, i_mem=0.368, f_time=0.690, f_mem=0.362)
 
 
 # ### (B). User-supplied data types
@@ -382,88 +542,88 @@ del df_pl_adm
 
 # ### Answer 2B
 # 
+# 
 # #### Pandas (Categorical) 
 # 
-# Categorical variables were assigned as type `categorical`. Dates were assigned as date. The runtime to ingest `admissions.csv.gz` using pandas and declaring data types was 3.69 seconds and the resulting data frame memory usage was 0.029 GB. Compared to pandas reading without declaring data types (1A), the pandas runtime with declared data types was __331% slower__ but the data frame memory usage was __92% less__.
+# Categorical variables were assigned as type `categorical`. Dates were assigned as date. The runtime to ingest `admissions.csv.gz` using pandas and declaring data types was 1.05 seconds and the resulting data frame memory usage was 0.029 GB. Compared to pandas reading without declaring data types (1A), the pandas runtime with declared data types was __10% Faster__ and the data frame memory usage was __92% less__.
 # 
 # #### Pandas (String)
 # 
-# Categorical variables were assigned as type `string`. Dates were assigned as date. The runtime to ingest `admissions.csv.gz` using pandas and declaring data types was 3.76 seconds and the resulting data frame memory usage was 0.277 GB. Compared to pandas reading without declaring data types (1A), the pandas runtime with declared data types was __328% slower__ but the data frame memory usage was __25% less__.
+# Categorical variables were assigned as type `string`. Dates were assigned as date. The runtime to ingest `admissions.csv.gz` using pandas and declaring data types was 3.76 seconds and the resulting data frame memory usage was 0.277 GB. Compared to pandas reading without declaring data types (1A), the pandas runtime with declared data types was __6% Faster__ and the data frame memory usage was __24% less__.
 # 
 # #### Polars (Categorical)
 # 
-# Categorical variables were assigned as type `string`. Dates were assigned as date. The runtime to ingest `admissions.csv.gz` using polar and declaring data types was 0.207 seconds and the resulting data frame memory usage was 0.029 GB. Compared to pandas reading without declaring data types (1A), the pandas runtime with declared data types was __328% slower__ but the data frame memory usage was __604,165x more__.
+# Categorical variables were assigned as type `categorical`. Dates were assigned as date. The runtime to ingest `admissions.csv.gz` using polar and declaring data types was 0.207 seconds and the resulting data frame memory usage was 0.029 GB. Compared to pandas reading without declaring data types (1A), the polars runtime with declared data types was __81% faster__ and the data frame memory usage was __92% less__.
 # 
 # 
 # #### Summary
-# For pandas, declaring variables increased the runtime but decreased the the size of the resulting data frame. Additionally, for pandas the size of the resulting data frame was less when categorical variables were assigned the type, `categorical`. Polars, had a slower runtime and larger resulting data frame; however, compared to pandas, the it was faster and the resulting data frame was smaller. Of the methods tested, polars was best because it accomplished the same task as pandas while using less resources.
+# For pandas, declaring variables decreased the runtime and decreased the size of the resulting data frame. Additionally, for pandas the size of the resulting data frame was less when categorical variables were assigned the type, `categorical`, instead of `string`. Polars, was the fastest and had similar memory usage as pandas. This makes sense becasue polars is multi-threaded and built with rust.
 
-# In[17]:
+# #### Documentation
+# 
+# The admissions data set was read by pandas and while reading in the data, types were declared. declaring column has the potential to improve resource usage while upholding data, integrity. In addition, polars was used to also read in the data using a similar method of declaring column. for pandas two methods were tested. One method declared categorical variables as string type however that did not perform as well as declaring the categorical variables as categories instead of strings. To make the memory usage consistent, the polars data frame was converted to a pandas data frame.
 
-
-get_ipython().run_cell_magic('time', '', '# Pandas: Assigning data types while reading (category)\ndf_pd_cat_adm = pd.read_csv(\n  "./mimic/hosp/admissions.csv.gz",\n  # assign data types\n  dtype={\n    \'subject_id\': \'int64\',\n    \'hadm_id\': \'int64\',\n    \'admission_type\': \'category\',\n    \'admit_provider_id\': \'category\',\n    \'admission_location\': \'category\',\n    \'discharge_location\': \'category\',\n    \'insurance\': \'category\',\n    \'language\': \'category\',\n    \'marital_status\': \'category\',\n    \'race\': \'category\',\n    \'hospital_expire_flag\': \'category\'\n  },\n  # assign date types\n  parse_dates=[\n    \'admittime\',\n    \'dischtime\',\n    \'deathtime\',\n    \'edregtime\',\n    \'admittime\',\n    \'edouttime\',\n    \'deathtime\',\n  ]\n)\n')
-
-
-# In[18]:
+# In[28]:
 
 
+get_ipython().run_cell_magic('time', '', '\n## Pandas\n# Assign data types while reading. For categorical variables assign the dtype as\n# a category.\ndf_pd_cat_adm = pd.read_csv(\n  "./mimic/hosp/admissions.csv.gz",\n  # assign data types\n  dtype={\n    \'subject_id\': \'int64\',\n    \'hadm_id\': \'int64\',\n    \'admission_type\': \'category\',\n    \'admit_provider_id\': \'category\',\n    \'admission_location\': \'category\',\n    \'discharge_location\': \'category\',\n    \'insurance\': \'category\',\n    \'language\': \'category\',\n    \'marital_status\': \'category\',\n    \'race\': \'category\',\n    \'hospital_expire_flag\': \'category\'\n  },\n  # assign date types\n  parse_dates=[\n    \'admittime\',\n    \'dischtime\',\n    \'deathtime\',\n    \'edregtime\',\n    \'admittime\',\n    \'edouttime\',\n    \'deathtime\',\n  ]\n)\n')
+
+
+# In[29]:
+
+
+# Object memory usage
 print(round(sys.getsizeof(df_pd_cat_adm)/10**9,3), "GB")
 
 
-# In[19]:
+# In[107]:
 
 
 # Initial = Pandas without declared data types
 # Final = Pandas with declared data types (categorical)
-percent_diff(i_time=0.878, i_mem=0.368, f_time=3.78, f_mem=0.029)
+percent_diff(i_time=1.17, i_mem=0.368, f_time=1.05, f_mem=0.029)
 
 
-# In[20]:
+# In[31]:
 
 
-get_ipython().run_cell_magic('time', '', '# Pandas: Assigning data types while reading (string)\ndf_pd_str_adm = (\n  pd.read_csv(\n    "./mimic/hosp/admissions.csv.gz",\n    # assign data types\n    dtype={\n      \'subject_id\': \'int64\',\n      \'hadm_id\': \'int64\',\n      \'admission_type\': \'string\',\n      \'admit_provider_id\': \'string\',\n      \'admission_location\': \'string\',\n      \'discharge_location\': \'string\',\n      \'insurance\': \'string\',\n      \'language\': \'string\',\n      \'marital_status\': \'string\',\n      \'race\': \'string\',\n      \'hospital_expire_flag\': \'string\'\n    },\n    # assign date types\n    parse_dates=[\n      \'admittime\',\n      \'dischtime\',\n      \'deathtime\',\n      \'edregtime\',\n      \'admittime\',\n      \'edouttime\',\n      \'deathtime\',])\n)\n')
+get_ipython().run_cell_magic('time', '', '\n## Pandas\n# Assign data types while reading. For categorical variables assign the dtype as\n# a string.\ndf_pd_str_adm = (\n  pd.read_csv(\n    "./mimic/hosp/admissions.csv.gz",\n    # assign data types\n    dtype={\n      \'subject_id\': \'int64\',\n      \'hadm_id\': \'int64\',\n      \'admission_type\': \'string\',\n      \'admit_provider_id\': \'string\',\n      \'admission_location\': \'string\',\n      \'discharge_location\': \'string\',\n      \'insurance\': \'string\',\n      \'language\': \'string\',\n      \'marital_status\': \'string\',\n      \'race\': \'string\',\n      \'hospital_expire_flag\': \'string\'\n    },\n    # assign date types\n    parse_dates=[\n      \'admittime\',\n      \'dischtime\',\n      \'deathtime\',\n      \'edregtime\',\n      \'admittime\',\n      \'edouttime\',\n      \'deathtime\',])\n)\n')
 
 
-# In[21]:
+# In[32]:
 
 
+# Object memory Usage
 print(round(sys.getsizeof(df_pd_str_adm)/10**9, 3), "GB")
 
 
-# In[22]:
+# In[108]:
 
 
 # Initial = Pandas without declared data types
 # Final = Pandas with declared data types (string)
-percent_diff(i_time=0.878, i_mem=0.368, f_time=3.76, f_mem=0.277)
+percent_diff(i_time=1.17, i_mem=0.368, f_time=1.1, f_mem=0.278)
 
 
-# In[23]:
+# In[34]:
 
 
-get_ipython().run_cell_magic('time', '', '# Polars: Assigning data types while reading (category)\ndf_pl_cat_adm = (\n  pl.read_csv(\n    "./mimic/hosp/admissions.csv.gz", # read file\n    # assign data types\n    dtypes={ \n      \'subject_id\': pl.Int64,\n      \'hadm_id\': pl.Int64,\n      \'admission_type\': pl.Categorical,\n      \'admit_provider_id\': pl.Categorical,\n      \'admission_location\': pl.Categorical,\n      \'discharge_location\': pl.Categorical,\n      \'insurance\': pl.Categorical,\n      \'language\': pl.Categorical,\n      \'marital_status\': pl.Categorical,\n      \'race\': pl.Categorical,\n      \'hospital_expire_flag\': pl.Categorical}, \n    try_parse_dates=True) # convert columns to date.\n  .to_pandas() # convert to pd.dataframe\n)\n')
+get_ipython().run_cell_magic('time', '', '\n## Polars\n# Assign data types while reading. For categorical variables assign the dtype as\n# a category.\ndf_pl_cat_adm = (\n  pl.read_csv(\n    "./mimic/hosp/admissions.csv.gz", # read file\n    # assign data types\n    dtypes={ \n      \'subject_id\': pl.Int64,\n      \'hadm_id\': pl.Int64,\n      \'admission_type\': pl.Categorical,\n      \'admit_provider_id\': pl.Categorical,\n      \'admission_location\': pl.Categorical,\n      \'discharge_location\': pl.Categorical,\n      \'insurance\': pl.Categorical,\n      \'language\': pl.Categorical,\n      \'marital_status\': pl.Categorical,\n      \'race\': pl.Categorical,\n      \'hospital_expire_flag\': pl.Categorical}, \n    try_parse_dates=True) # convert columns to date.\n  .to_pandas() # convert to pd.dataframe\n)\n')
 
 
-# In[24]:
+# In[109]:
 
 
+# Polars Object memory usage
 print(round(sys.getsizeof(df_pl_cat_adm)/10**9,3), "GB")
 
 
-# In[25]:
+# In[111]:
 
 
 # Initial = Polars without declared data types(initial) 
 # Final = Polars with declared data types
-percent_diff(i_time=0.214, i_mem=4.8e-08, f_time=0.199, f_mem=0.029)
-
-
-# In[26]:
-
-
-del df_pd_cat_adm
-del df_pd_str_adm
-del df_pl_cat_adm
+percent_diff(i_time=1.17, i_mem=0.368, f_time=0.220, f_mem=0.029)
 
 
 # ## Problem 3. Ingest big data files
@@ -471,7 +631,10 @@ del df_pl_cat_adm
 # 
 # Let us focus on a bigger file, `labevents.csv.gz`, which is about 125x bigger than `admissions.csv.gz`.
 
-# In[27]:
+# ##### Documentation
+# The below code is bash. The size of lab events is 1.8 GB below that code are the first 10 rows of lab events using bash.
+
+# In[37]:
 
 
 # Size of labevents as a csv.gz
@@ -480,7 +643,7 @@ get_ipython().system('ls -goh ./mimic/hosp/labevents.csv.gz')
 
 # Display the first 10 lines of this file.
 
-# In[28]:
+# In[38]:
 
 
 # First 10 results of labevents
@@ -495,50 +658,56 @@ get_ipython().system('zcat < ./mimic/hosp/labevents.csv.gz | head -10')
 # 
 # #### Pandas
 # 
-# Pandas was able to read `labevents.csv.gz` within 5 minutes. The runtime to read the file was 3 minutes and 17 seconds and the resulting data frame memory usage was 61 GB.
+# Pandas was able to read `labevents.csv.gz` within 5 minutes. The runtime to read the file was 2 minutes and the resulting data frame memory usage was 61 GB.
 # 
+# final runtime was 32% faster than initial.
+# final df memory usage was 3% more than initial.
 # #### Polars
 # 
-# Polars was unable to read `labevents.csv.gz` within 5 minutes. From problem, 4A, it was determined that polars doesn't read compressed csv files and convert them to pandas data frames efficiently for large compressed csv files. The kernel will crash.
+# Polars was able to read `labevents.csv.gz` within 5 min. The runtime to read the file was 1 minute and 22 seconds.
 # 
 # #### Summary
 # 
-# Use Pandas to read in large (but less than memory) compressed files because polars is not efficient at reading large compressed files.
+# The runtime to read in the compressed csv, labevents, using Polars was 32% faster than Pandas, but the resulting memory usage of the dataframe was 3% more which is an acceptable tradeoff for the time savings.
 
-# In[29]:
+# #### Description
+# The compressed CSV labevents was read by pandas and polars. To make the memory usage consistent, the polars data frame was converted to a pandas data frame.
+
+# In[39]:
 
 
 get_ipython().run_cell_magic('time', '', '#Pandas read labevents.csv.gz\ndf_pd_lab = pd.read_csv("./mimic/hosp/labevents.csv.gz")\n')
 
 
-# In[30]:
+# In[40]:
 
 
 print(round(sys.getsizeof(df_pd_lab)/10**9,3), "GB")
 
 
-# In[31]:
+# In[41]:
 
 
-del df_pd_lab
+get_ipython().run_cell_magic('time', '', '#Polars read labevents.csv.gz\ndf_pl_lab = pl.read_csv("./mimic/hosp/labevents.csv.gz").to_pandas()\n')
 
 
-# In[32]:
+# In[42]:
 
 
-get_ipython().run_cell_magic('time', '', '#Polars read labevents.csv.gz Failed\n# df_pl_lab = pl.read_csv("./mimic/hosp/labevents.csv.gz").to_pandas()\n')
+print(round(sys.getsizeof(df_pl_lab)/10**9,3), "GB")
 
 
-# In[33]:
+# In[112]:
 
 
-# print(round(sys.getsizeof(df_pl_lab)/10**9,3), "GB")
-
-
-# In[34]:
-
-
-# del df_pl_lab
+# Initial: Pandas reading labevents
+# Final: Polars reading labevents
+percent_diff(
+  i_time=(2 * 60 + 1),
+  i_mem=61.002, 
+  f_time=(1 * 60 + 22), 
+  f_mem=62.998
+)
 
 
 # ### (B). Ingest selected columns of `labevents.csv.gz` by `pd.read_csv`
@@ -549,76 +718,66 @@ get_ipython().run_cell_magic('time', '', '#Polars read labevents.csv.gz Failed\n
 # 
 # #### Pandas
 # 
-# The runtime to read selected columns of the file was 1 minute and 12 seconds and the resulting data frame memory usage was 11.817 GB. The runtime for reading selected columns in pandas was __63% faster__ and the resulting data frame memory usage was __81% smaller__ when compared the pandas reading all columns.
+# The runtime to read selected columns of the file was 1 minute and 7 seconds and the resulting data frame memory usage was 11.817 GB. The runtime for reading selected columns in pandas was __45% faster__ and the resulting data frame memory usage was __81% smaller__ when compared the pandas reading all columns.
 # 
 # #### Polars
 # 
-# The runtime to read selected columns of the file was 44.8 seconds and the resulting data frame memory usage was 11.817 GB. The runtime for reading selected columns in polars was __77% faster__ and the resulting data frame memory usage was __81% smaller__ when compared the pandas reading all columns.
+# The runtime to read selected columns of the file was 44.8 seconds and the resulting data frame memory usage was 11.817 GB. The runtime for reading selected columns in polars was __74% faster__ and the resulting data frame memory usage was __81% smaller__ when compared the pandas reading all columns.
 # 
 # #### Summary
 # 
-# For large, compressed files, pandas is the preferred method. Pandas increased compatibility, reliability, and readability outweigh the marginal performance increases provided by polars when reading large, compressed files.
+# Again, Polars was the fastest method for reading in an selecting columns.
 
-# In[35]:
+# Description: While reading the compressed CSV file labevents using pandas, the columns were selected. This was replicated for polars as well. To make the memory usage consistent, the polars data frame was converted to a pandas data frame.
+
+# In[113]:
 
 
 get_ipython().run_cell_magic('time', '', '# Pandas Read select labevent columns\ndf_pd_lab = pd.read_csv("./mimic/hosp/labevents.csv.gz", usecols = lab_col)\n')
 
 
-# In[36]:
+# In[114]:
 
 
 print(round(sys.getsizeof(df_pd_lab)/10**9,3), "GB")
 
 
-# In[37]:
+# In[115]:
 
 
 # Initial: Pandas reading all columns
 # Final: Pandas reading selected columns
 percent_diff(
-  i_time= (3 * 60 + 17),
+  i_time= (2 * 60 + 1),
   i_mem= 61.002,
-  f_time= (1 * 60 + 12),
+  f_time= (1 * 60 + 7),
   f_mem= 11.817
 )
 
 
-# In[38]:
-
-
-del df_pd_lab
-
-
-# In[39]:
+# In[116]:
 
 
 get_ipython().run_cell_magic('time', '', '# Polars Read select labevent columns\ndf_pl_lab = (\n  pl.read_csv("./mimic/hosp/labevents.csv.gz", # read file\n    columns = lab_col) # Select columns\n    .to_pandas() # Convert pl.dataframe to pd.dataframe\n)\n')
 
 
-# In[40]:
+# In[117]:
 
 
 print(round(sys.getsizeof(df_pl_lab)/10**9,3), "GB")
 
 
-# In[41]:
+# In[118]:
 
 
 # Initial: Pandas reading all columns
 # Final: Polars reading specific columns
 percent_diff(
-  i_time= (3 * 60 + 17),
+  i_time= (2 * 60 + 1),
   i_mem= 61.002,
-  f_time= (44.8),
+  f_time= (30.9),
   f_mem= 11.817
 )
-
-
-# In[42]:
-
-
-del df_pl_lab
 
 
 # ### (C). Ingest subset of `labevents.csv.gz`
@@ -627,49 +786,45 @@ del df_pl_lab
 # 
 # As before, we will only be interested in the following lab items: creatinine (50912), potassium (50971), sodium (50983), chloride (50902), bicarbonate (50882), hematocrit (51221), white blood cell count (51301), and glucose (50931) and the following columns: `subject_id`, `itemid`, `charttime`, `valuenum`. 
 # 
-# Rerun the Bash command to extract these columns and rows from `labevents.csv.gz` and save the result to a new file `labevents_filtered.csv.gz` in the current working directory (Q2.3 of HW2). How long does it take?
+# Rerun the Bash command to extract these columns and rows from `labevents.csv.gz` and save the result to a new file `labevents_filtered.csv.gz` in the current working directory (Q2.3 of HW2). How long does it take?(_Updated 5/6: You may reuse the file you created last quarter and report the elapsed time from the last quarter for this part._)
 # 
 # Display the first 10 lines of the new file `labevents_filtered.csv.gz`. How many lines are in this new file? How long does it take `pd.read_csv()` to ingest `labevents_filtered.csv.gz`?
 # 
 
 # ### Answer 3C
 # 
-# The runtime to select columns and filter `labevents` using Bash was 5 minutes and 34 seconds and the runtime to ingest `labevents_filtered` was 7 seconds. The number of rows in the resulting dataset was 24,855,909.
+# The runtime to select columns and filter `labevents` using Bash was 1 minute and 36 seconds and the runtime to ingest `labevents_filtered` was 10 seconds. The number of rows in the resulting dataset was 24,855,909.
 
-# In[43]:
+# Description: the below bash code reads in the compressed CSV labevents using zcat, then is filtered by Rows that equal the necessary item IDs and finally select the columns. This is then saved to another compressed CSV called lab events filtered. After processing the data using bash, pandas was used to read the file that was created in bash. The first 10 rows of the file was displayed using pandas `head` function.
+
+# In[65]:
 
 
 get_ipython().run_cell_magic('bash', '', '# Read labevents, select columns, and filter rows by itemid\ntime(zcat < ./mimic/hosp/labevents.csv.gz | \\\n  awk -F, \\\n  \'BEGIN {OFS = ","} {if (NR == 1 || $5 == 50912 || $5 == 50971 ||\n    $5 == 50983 || $5 == 50902 || $5 == 50882 || $5 == 51221 || \n    $5 == 51301 || $5 == 50931) {print $2, $5, $7, $10}}\' | \\\n  gzip > labevents_filtered.csv.gz)\necho "complete"\n')
 
 
-# In[44]:
+# In[66]:
 
 
 get_ipython().run_cell_magic('time', '', '# Pandas read labevents_filtered.csv.gz\ndf_pd_lab_filter = pd.read_csv("./labevents_filtered.csv.gz")\n')
 
 
-# In[45]:
+# In[67]:
 
 
 df_pd_lab_filter.head(10)
 
 
-# In[46]:
+# In[68]:
 
 
 df_pd_lab_filter.shape
 
 
-# In[47]:
+# In[69]:
 
 
 print(round(sys.getsizeof(df_pd_lab_filter)/10**9,3), "GB")
-
-
-# In[48]:
-
-
-del df_pd_lab_filter
 
 
 # ### (D). Review
@@ -693,19 +848,24 @@ del df_pd_lab_filter
 # DuckDB is a fast and portable database management system. DuckDB can connect to database servers or be server-less, performing SQL operations on large files and tables while being memory and time efficient. It also has support across a wide range of languages.([DuckDB](https://duckdb.org/why_duckdb.html#:~:text=DuckDB%20offers%20a%20flexible%20extension,protocols%20are%20implemented%20as%20extensions.)).
 # 
 
-# ### (E). Ingest `labevents.csv.gz` by Apache Arrow
+# ### (E). Ingest `labevents.csv.gz` by Apache Arrow (modified 5/6)
 # 
-# Our second strategy again is to use [Apache Arrow](https://arrow.apache.org/) for larger-than-memory data analytics. We will use the package `pyarrow`. Unlike in R, this package works with the `csv.gz` format. We don't need to decompress the data. We could just use `dplyr` verbs in R, but here, we need a different set of commands. The core idea behind the commands are still the same, though.
+# Our second strategy again is to use [Apache Arrow](https://arrow.apache.org/) for larger-than-memory data analytics. We will use the package `pyarrow`. Unlike in R, this package works with the `csv.gz` format. We don't need to keep the decompressed data on disk. We could just use `dplyr` verbs in R, but here, we need a different set of commands. The core idea behind the commands are still similar, though. There is one notable difference in approach: 
 # 
-# - Let's use [`pyarrow.csv.read_csv`](https://arrow.apache.org/docs/python/generated/pyarrow.csv.read_csv.html) to ingest `labevents.csv.gz`. It creates an object of type [`pyarrow.Table`](https://arrow.apache.org/docs/python/generated/pyarrow.Table.html).
+# - R's `arrow` package allowed lazy evaluation but required `csv` file to be decompressed beforehand. 
+# - On the other hand, `pyarrow` allows `csv.gz` format, but lazy evaluation is not available. For larger-than-memory data, streaming approach can be used.
 # 
-# - Next, select columns using the [`select()`](https://arrow.apache.org/docs/python/generated/pyarrow.Table.html#pyarrow.Table.select) method. 
+# Follow these steps to ingest the data:
+# - Use [`pyarrow.csv.read_csv`](https://arrow.apache.org/docs/python/generated/pyarrow.csv.read_csv.html) to read in `labevents.csv.gz`. It creates an object of type [`pyarrow.Table`](https://arrow.apache.org/docs/python/generated/pyarrow.Table.html). _If this does not work on your computer, state that fact. It's OK to not complete this part in that case. However, you still need the `filter_table()` function for the next part. It's still recommend to _
 # 
-# - As in (C), filter the rows based on the column `itemid` using the [`filter()`](https://arrow.apache.org/docs/python/generated/pyarrow.Table.html#pyarrow.Table.filter) method. It is strongly recommended to use [`Expression`](https://arrow.apache.org/docs/python/generated/pyarrow.dataset.Expression), in particular, the `isin()` method. 
-# 
-# - Finally, let's obtain the result in `pandas` `DataFrame` using the method `to_pandas()`. 
+# - Define a function `filter_table()` that takes in a `pyarrow.Table` as an argument, and returns `pyarrow.Table` doing the following:
+#     - Select columns using the [`.select()`](https://arrow.apache.org/docs/python/generated/pyarrow.Table.html#pyarrow.Table.select) method. 
+#     - Filter the rows based on the column `itemid` using the [`.filter()`](https://arrow.apache.org/docs/python/generated/pyarrow.Table.html#pyarrow.Table.filter) method. You should use [`Expression`](https://arrow.apache.org/docs/python/generated/pyarrow.dataset.Expression) for improved performance. In particular, use the `isin()` method for constructing it.
+#     
+# - Finally, let's obtain the result in `pandas` `DataFrame` using the method `.to_pandas()`. 
 # 
 # How long does the ingest+select+filter process take? Display the number of rows and the first 10 rows of the result dataframe, and make sure they match those of (C).
+# 
 
 # ### Answer 3E
 # 
@@ -713,151 +873,159 @@ del df_pd_lab_filter
 # 
 # The runtime to read "labevents.csv.gz", select columns, and filter rows was 1 minute 16 seconds and the resulting data frame memory usage was 0.606 GB. 
 
-# In[49]:
+# Description: homework three was changed and now requires a function to be used to filter a pyarrow table. Therefore, filter_table was used to select columns and filter rose by items in the table and return a filter table. Inside the function are the columns and item IDs. We wish to filter the table. The arrow functions select and filter were used to filter the data set. In order to use the filter function, additional arrow functions were needed such as `is_in` and `field` to specify which column to filter by and format the input in a compatible way.
+
+# In[70]:
 
 
-get_ipython().run_cell_magic('time', '', '# Apache Arrow read labevents\ndf_pa_lab_ftr = csv.read_csv(pth_hsp + "labevents.csv.gz") # read file\n# Apache Arrow filter labevents\ndf_pa_lab_ftr = (\n  df_pa_lab_ftr # pa.dataframe\n  .select(lab_col) # select columns\n  .filter(pc.is_in(pc.field("itemid"), pa.array(lab_itemid))) # filter by itemid\n  .to_pandas() # convert to pd.dataframe\n)\n')
+def filter_table(arrow_tbl):
+  """
+  Select columns in columns_filter and filter rows by items in items_filter from
+  a pyarrows table and return a filtered pyarrows table.
+  Args:
+    arrow_tbl: A pa.Table of labevents.csv.gz
+  Return:
+    pa_tbl_ftr: A filtered pa.Table of labevents.csv.gz
+  """
+  lab_col = ['subject_id', 'itemid', 'charttime', 'valuenum']
+  lab_itemid = [50912, 50971, 50983, 50902, 50882, 51221, 51301, 50931]
+  pa_tbl_ftr = (
+    arrow_tbl # pa.dataframe
+    .select(lab_col) # select columns
+    .filter(pc.is_in(pc.field("itemid"), pa.array(lab_itemid))) # filter by itemid
+  )
+  return pa_tbl_ftr
 
 
-# In[50]:
+# In[71]:
+
+
+get_ipython().run_cell_magic('time', '', 'df_pa_lab_ftr = csv.read_csv(pth_hsp + "labevents.csv.gz") # read file\ndf_pa_lab_ftr = filter_table(df_pa_lab_ftr).to_pandas()\n')
+
+
+# In[72]:
 
 
 print(round(sys.getsizeof(df_pa_lab_ftr)/10**9,3), "GB")
 
 
-# In[51]:
+# In[73]:
 
 
 df_pa_lab_ftr.shape
 
 
-# In[52]:
+# In[74]:
 
 
 df_pa_lab_ftr.head(10)
 
 
-# In[53]:
-
-
-del df_pa_lab_ftr
-
-
-# ### (F). Compress `labevents.csv.gz` to Parquet format and ingest/select/filter
+# ### (F). Streaming data (added 5/6)
 # 
+# When working with the `csv.gz` file, the entire file will need to be decompressed in memory, which might not be feasible. You can stream data, and processing them in several chunks that fits into the memory.
 # 
-# Re-write the csv.gz file `labevents.csv.gz` in the binary Parquet format (Hint: [`pyarrow.parquet.write_table`](https://arrow.apache.org/docs/python/generated/pyarrow.parquet.write_table.html).) How large is the Parquet file(s)? 
-# 
-# How long does the ingest+select+filter process of the Parquet file(s) take?  
-# Display the number of rows and the first 10 rows of the result dataframe and make sure they match those in (C). 
-# 
-# __This should be significantly faster than all the previous results.__ 
-# _Hint._ Use [`pyarrow.parquet.read_table`](https://arrow.apache.org/docs/python/generated/pyarrow.parquet.read_table.html) method with the keyword argument `columns`. Also, make sure that you are using an `Expression`. 
+# If the function `filter_table()` is defined correctly, the following should successfully ingest the data. Discuss what this code is doing in markdown. Also, add sufficient comment to the code. 
 
 # ### Answer 3F
 # 
-# #### Apache Arrow (Convert to parquet)
+# #### Apache Arrow (Read, Select, Filter, then Convert to parquet)
 # 
-# The runtime to read `labevents.csv.gz` and write as a parquet was 4 minutes and 10 seconds. The resulting parquet file was 1.6 GB, 11% smaller than `labevents.csv.gz`
+# The runtime to read, select, filter `labevents.csv.gz` in batches and write as a parquet was 80 seconds and the resulting parquet file was 101 MB.
+
+# Description: Below is an additional way to read in the compressed CSV of labevents. Similar to the base python function `with open`, arrow has a similar function called `open_csv`. Unlike the previous arrow method, the file is streamed into the python environment instead of all at once. This allows for the file to be batched. Batches consume less memory than reading in the whole data set at once; Therefore, for systems with less resources, those systems are able to open the file. This is done by reading in each batch, then filtering that batch and appending it to a python object. The final object is a arrow table. The arrow table is converted to a pandas data frame.
+
+# In[75]:
+
+
+get_ipython().run_cell_magic('time', '', "\n# Path to labevents\nin_path = './mimic/hosp/labevents.csv.gz'\n\n# initialize filtered object\nfiltered = None\n# open csv as reader\nwith csv.open_csv(in_path) as reader:\n  # for each partition in the reader.\n  for next_chunk in reader:\n    # if the partition is empty stop loop\n    if next_chunk is None:\n      break\n    # Convert chunk/partition into a table\n    next_table = pa.Table.from_batches([next_chunk])\n    # Filter that chunk/partition by filter_table\n    next_subset = filter_table(next_table)\n    # For the first chunk, have the filtered chunk assigned to filtered.\n    if filtered is None:\n      filtered = next_subset\n    # Otherwise append that chuck to the bottom of the filtered\n    else:\n      filtered = pa.concat_tables([filtered, next_subset])\n\nfiltered_df = filtered.to_pandas()\n")
+
+
+# In[76]:
+
+
+print(round(sys.getsizeof(filtered_df)/10**9,3), "GB")
+
+
+# In[77]:
+
+
+filtered_df.head(10)
+
+
+# ### (G). Convert `labevents.csv.gz` to Parquet format and ingest/select/filter
 # 
-# #### Apache Arrow (Read, Select, and filter)
+# Re-write the csv.gz file `labevents.csv.gz` in the binary Parquet format using the code below. Add comments to the code. How large is the Parquet file(s)?
+
+# ### Answer 3G
 # 
-# The runtime to read, select, and filter the parquet was 6.6 seconds and the resulting data frame memory usage was 0.795 GB.
+# The resulting parquet file from the below code was 2.0 gb which is 5% more than the csv.gz counterpart. This is still a good result because the parquet file is not compressed and is faster to load than csv.gz because it does not have to be decompressed when using some libraries.
 # 
-# #### Polars (Read, Select, and filter)
+# To filter the parquet using pyarrow, the runtime was 5.32 seconds and the memory usage was 0.795 GB. Using pyarrow to filter a parquet file was 91% faster than filtering on the compressed csv file.
+
+# #### Documentation
 # 
-# The runtime to read, select, and filter the parquet was 1.5 seconds and the resulting data frame memory usage was 0.795 GB.
-# 
-# #### Summary
-# 
-# The runtime to read, select, and filter the parquet in polars was __78% faster__ than Apache Arrow. Polars shares a similar back-end to Apache Arrow, but polars is able to lazily read and perform operations on non-compressed files, making it faster than Apache Arrow.
+# PyArrow was used to stream chunks from the compressed csv file, labevents, to a parquet file using `open_csv` to stream in the data and `ParquetWriter` to steam the chucks into a parquet file format. Similar to the base python function with open, arrow has a similar function called `open_csv`. The file is streamed into the python environment instead of all at once. This allows for the file to be batched. Batches consume less memory than reading in the whole data set at once; Therefore, for systems with less resources, those systems are able to open the file. To stream the batches into a parquet file format, the object, `writer`, is initialized to using `ParquetWriter` which is a class that allows for iterative building of a parquet file. Each batch is added to this oject class and once the file is created, the files is closed.
 
-# In[54]:
+# In[90]:
 
 
-get_ipython().run_cell_magic('time', '', '# Apache Arrow Read labevents\ndf_pa_lab = csv.read_csv(pth_hsp + "labevents.csv.gz")\n# Apache Arrow write labevents as parquet\npq.write_table(df_pa_lab, \'./pa_labevents.parquet\')\n')
-
-
-# In[55]:
-
-
-del df_pa_lab
-
-
-# In[56]:
-
-
-# size of labevents parquet file
-get_ipython().system('ls -goh ./pa_labevents.parquet')
-
-
-# In[57]:
-
-
-# Initial: labevents.csv.gz
-# Final: labevents.parquet
-percent_diff(
-  i_mem = 1.8,
-  f_mem = 1.6
-)
-
-
-# In[82]:
-
-
-get_ipython().run_cell_magic('time', '', 'df_pa_lab_ftr = (\n  pq.read_table(\'./pa_labevents.parquet\') # read labevents.parquet\n  .select(lab_col) # select columns\n  .filter(pc.is_in(pc.field("itemid"), pa.array(lab_itemid))) # Filter by itemid\n  .sort_by([("subject_id", "ascending"),("charttime", "ascending")])\n  .to_pandas() # Convert to pd.dataframe\n)\n')
-
-
-# In[59]:
-
-
-print(round(sys.getsizeof(df_pa_lab_ftr)/10**9,3), "GB")
-
-
-# In[84]:
-
-
-df_pa_lab_ftr.head(10)
-
-
-# In[60]:
-
-
-del df_pa_lab_ftr
-
-
-# In[81]:
-
-
-get_ipython().run_cell_magic('time', '', "df_pl_lab_ftr = (\n  pl.scan_parquet('./pa_labevents.parquet') # lazy read\n  .select(lab_col) # select columns\n  .filter(pl.col('itemid').is_in(lab_itemid)) # filter rows\n  .sort(['subject_id','charttime'])\n  .collect() # collect pl.lazyframe to pl.dataframe\n  .to_pandas() # convert to pd.dataframe\n)\n")
-
-
-# In[62]:
-
-
-print(round(sys.getsizeof(df_pl_lab_ftr)/10**9,3), "GB")
+get_ipython().run_cell_magic('time', '', "# Set the path to the symbolic link directory and labevents\nin_path = './mimic/hosp/labevents.csv.gz'\n# Set the save parquet path\nout_path = './labevents.parquet'\n\n# Initialize the object.\nwriter = None\n# Stream the compressed csv to the python object reader\nwith csv.open_csv(in_path) as reader:\n    # Loop through each chuck from the streamed object, reader.\n    for next_chunk in reader:\n        # stop if the chunck is the empty which is true when at end of stream\n        if next_chunk is None:\n            break\n        # If writer is empty,\n        # initialize object, writer, for incrementally building a Parquet file.\n        if writer is None:\n            writer = pq.ParquetWriter(out_path, next_chunk.schema)\n        # For each chunk, add the chunk to next_table\n        next_table = pa.Table.from_batches([next_chunk])\n        # For each chunk, write write table as parquet using the\n        # object, writer which was initialized when it was first empty.\n        writer.write_table(next_table)\nwriter.close() # Close the streaming to prevent errors and improve security.\n")
 
 
 # In[91]:
 
 
-df_pl_lab_ftr.head(10)
+get_ipython().system('ls -goh ./labevents.parquet')
 
 
-# In[63]:
+# In[92]:
 
 
-# Initial: Apache Arrow read, select, and filter
-# Final: Polars read, select, and filter (lazy)
+get_ipython().system('ls -goh ./mimic/hosp/labevents.csv.gz')
+
+
+# In[93]:
+
+
+# Initial is labevents.csv.gz
+# Final is labevents.parquet
 percent_diff(
-  i_time = 6.57,
-  i_mem = 0.606,
-  f_time = 1.47,
-  f_mem = 0.606
+    i_mem = 1.9,
+    f_mem = 2.0
 )
 
 
-# ### (G). DuckDB
+# In[124]:
+
+
+get_ipython().run_cell_magic('time', '', 'df_pa_lab_ftr = (\n  pq.read_table(\'./labevents.parquet\') # read labevents.parquet\n  .select(lab_col) # select columns\n  .filter(pc.is_in(pc.field("itemid"), pa.array(lab_itemid))) # Filter by itemid\n  .sort_by([("subject_id", "ascending"),("charttime", "ascending")])\n  .to_pandas() # Convert to pd.dataframe\n)\n')
+
+
+# In[125]:
+
+
+print(round(sys.getsizeof(df_pa_lab_ftr)/10**9,3), "GB")
+
+
+# In[126]:
+
+
+df_pa_lab_ftr.head(10)
+
+
+# In[127]:
+
+
+percent_diff(
+    i_time= 59.9,
+    i_mem= 0.795,
+    f_time= 5.32,
+    f_mem= 0.795
+)
+
+
+# ### (H). DuckDB
 # 
 # Let's use `duckdb` package in Python to use the DuckDB interface. In Python, DuckDB can interact smoothly with `pandas` and `pyarrow`. I recommend reading: 
 # 
@@ -873,59 +1041,112 @@ percent_diff(
 # _Hint_: It could be a single SQL command.
 # 
 
-# ### Answer 3G
+# ### Answer 3H
+# 
+# #### PyArrow
+# 
+# The runtime to read, select, and filter the parquet was 5.32 seconds and the resulting data frame memory usage was 0.795 GB.
 # 
 # #### DuckDB
 # 
-# The runtime to read, select, and filter the parquet was 3.47 seconds and the resulting data frame memory usage was 1.893 GB.
+# The runtime to read, select, and filter the parquet was 7.89 seconds and the resulting data frame memory usage was 0.795 GB.
+# 
+# #### Polars
+# 
+# The runtime to read, select, and filter the parquet was 1.95 seconds and the resulting data frame memory usage was 0.795 GB.
+# 
+# final runtime was 75% faster than initial.
+# final df memory usage was the same as initial.
 # 
 # #### Summary
 # 
-# The runtime to read, select, and filter the parquet in polars was __58% faster__ and the resulting data frame memory usage was __68% less__ than using DuckDB.
+# The runtime to read, select, and filter the parquet in polars was __75% faster__ than DuckDB and __63% faster__ than PyArrow, but resulted in the same memory usage as DuckDB.
 
-# In[89]:
+# #### Documentation
+# 
+# DuckDB was used to read, select columns and filter by item ID. A database was created in memory. The programming language SQL was used to select columns, read in the parquet, and filter by itemid. Using this method however resulted in a dataset with a different order than the bash method. to match the bash method, an order by statement was added to the SQL query. After adding the orderby, the output matched the bash command.
+#  
+# PyArrow was used to read, select columns, and filter by item ID. Unlike the previous PyArrow functions, `read_csv`, was used which reads in all of the file at once instead of batches. It is less memory efficient but is faster than reading in batches. In order to use the filter function, additional arrow functions were needed such as `is_in` and `field` to specify which column to filter by and format the input in a compatible way.
+# 
+# Polars was used to read, select columns, and filter by item ID. Unlike the other methods, Polars didn't read in the data at all and only created a link because the parquet file was lazy loaded. before reading in the data, queries were supplied to polars and polars organized the queries in the most efficient order and performed them and read in the parquet file when it was collected.
+
+# In[96]:
 
 
-get_ipython().run_cell_magic('time', '', '# open server-less database and close when done\nwith duckdb.connect(database=\':memory:\') as con:\n  # SQL query\n  df_db_lab_ftr = con.execute(\n    """\n    SELECT subject_id, itemid, charttime, valuenum\n    FROM \'./pl_labevents.parquet\' \n    WHERE itemid IN (50912, 50971, 50983, 50902, 50882, 51221, 51301, 50931)\n    ORDER BY subject_id, charttime ASC\n    """\n  ).df() # Output as pandas data frame\n')
+get_ipython().run_cell_magic('time', '', '# open server-less database and close when done\nwith duckdb.connect(database=\':memory:\') as con:\n  # SQL query\n  df_db_lab_ftr = con.execute(\n    """\n    SELECT subject_id, itemid, charttime, valuenum\n    FROM \'./labevents.parquet\' \n    WHERE itemid IN (50912, 50971, 50983, 50902, 50882, 51221, 51301, 50931)\n    ORDER BY subject_id, charttime ASC\n    """\n  ).df() # Output as pandas data frame\n')
 
 
-# In[76]:
+# In[97]:
 
 
 print(round(sys.getsizeof(df_db_lab_ftr)/10**9,3), "GB")
 
 
-# In[90]:
+# In[98]:
 
 
 df_db_lab_ftr.head(10)
 
 
-# In[67]:
+# In[120]:
 
 
-del df_db_lab_ftr
+get_ipython().run_cell_magic('time', '', "df_pl_lab_ftr = (\n  pl.scan_parquet('./labevents.parquet') # lazy read\n  .select(lab_col) # select columns\n  .filter(pl.col('itemid').is_in(lab_itemid)) # filter rows\n  .sort(['subject_id','charttime'])\n  .collect() # collect pl.lazyframe to pl.dataframe\n  .to_pandas() # convert to pd.dataframe\n)\n")
 
 
-# In[68]:
+# In[121]:
+
+
+print(round(sys.getsizeof(df_pl_lab_ftr)/10**9,3), "GB")
+
+
+# In[123]:
+
+
+df_pl_lab_ftr.head(10)
+
+
+# In[122]:
 
 
 # Initial: DuckDB read, select, and filter
 # Final: Polars read, select, and filter
 percent_diff(
-  i_time = 3.47,
-  i_mem = 1.893,
-  f_time = 1.47,
-  f_mem = 0.606
+  i_time = 7.89,
+  i_mem = 0.795,
+  f_time = 1.95,
+  f_mem = 0.795
 )
 
+
+# In[128]:
+
+
+# Initial: Pyarrow read, select, and filter
+# Final: Polars read, select, and filter
+percent_diff(
+  i_time = 5.32,
+  i_mem = 0.795,
+  f_time = 1.95,
+  f_mem = 0.795
+)
+
+
+# ### (I). Comparison (added 5/6)
+# Compare your results with those from Homework 2 of BIOSTAT 203B. 
+
+# The biggest comparison between Homework 2 from Biostat 203B and this assignment is between R and python and the packages and libraries that were used in each. For example, reading in the dataset, labevents, with tidyverse did not work, my system crashed and it took over 5 minutes. Similarly, when I tried to read in only select columns of labevents with tidyverse, it also crashed and it took over 5 minutes. Bash was needed to decompress the labevents file for pyarrow to work. Pyarrow was able to read in the decompressed csv. The total time to decompress and read in the data was 119 seconds, significantly more than the 74 seconds to read in the data with pyarrow. DuckDB in R also needed a decompressed csv. Therefore, it's faster to use python and pyarrow, duckdb, polars, and pandas than any of the packages used in R in the 203B HW2.
 
 # ## Problem 4. Ingest and filter `chartevents.csv.gz`
 # 
 # [`chartevents.csv.gz`](https://mimic.mit.edu/docs/iv/modules/icu/chartevents/) contains all the charted data available for a patient. During their ICU stay, the primary repository of a patient’s information is their electronic chart. The `itemid` variable indicates a single measurement type in the database. The `value` variable is the value measured for `itemid`. The first 10 lines of `chartevents.csv.gz` are
 # 
 
-# In[69]:
+# #### Documentation
+# 
+# The bash commands below output the first 10 rows of chartevents and d_items.
+
+# In[100]:
 
 
 get_ipython().system('zcat < ./mimic/icu/chartevents.csv.gz | head -10')
@@ -933,7 +1154,7 @@ get_ipython().system('zcat < ./mimic/icu/chartevents.csv.gz | head -10')
 
 # [`d_items.csv.gz`](https://mimic.mit.edu/docs/iv/modules/icu/d_items/) is the dictionary for the `itemid` in `chartevents.csv.gz`.
 
-# In[70]:
+# In[101]:
 
 
 get_ipython().system('zcat < ./mimic/icu/d_items.csv.gz | head -10')
@@ -951,25 +1172,25 @@ get_ipython().system('zcat < ./mimic/icu/d_items.csv.gz | head -10')
 # 
 # Polars was unable to read the compressed csv.
 
-# In[71]:
+# In[129]:
 
 
 get_ipython().run_cell_magic('time', '', '# open server-less database in memory and close when done.\nwith duckdb.connect(database=\':memory:\') as con:\n    df_db_chrt_ftr = con.execute( # SQL query\n      """\n      SELECT *\n      FROM \'./mimic/icu/chartevents.csv.gz\' \n      WHERE itemid IN (220045, 220181, 220179, 223761, 220210)\n      """\n    ).df() # Output as pandas dataframe\n')
 
 
-# In[72]:
+# In[130]:
 
 
 df_db_chrt_ftr.shape
 
 
-# In[73]:
+# In[131]:
 
 
 print(round(sys.getsizeof(df_db_chrt_ftr)/10**9,3), "GB")
 
 
-# In[74]:
+# In[132]:
 
 
 df_db_chrt_ftr.head(10)
@@ -977,4 +1198,4 @@ df_db_chrt_ftr.head(10)
 
 # ### Summary and Conclusion
 # 
-# Use DuckDB to read and query on large, compressed data files. Use polars to lazily read and query parquet files. Use pandas for compatibility. From this analysis, there is no clear reason to use Apache Arrow over DuckDB, polars, and pandas.
+# Use DuckDB to read and query on large, compressed data files. Use polars to lazily read and query parquet files. Use pandas for compatibility and use PyArrow to read in batches for larger than memory data.
