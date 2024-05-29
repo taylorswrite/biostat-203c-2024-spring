@@ -4,6 +4,8 @@ import numpy as np # For Arrays
 import pandas as pd # For DataFrames
 import requests # For requesting website html
 from bs4 import BeautifulSoup # For html parser
+import seaborn as sns # plotting
+from matplotlib import pyplot as plt # plotting
 
 ## List of User Agents from a github post. Link in Notebook.
 user_agents_github = """Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.2454.85 Safari/537.36
@@ -56,9 +58,10 @@ def parse_actor_page(df, actor_directory, user_agents=user_agents):
         df: (pd.DataFrame) df with appended actor movie combinations
     """
     # Requesting TMDB movie site
+    url = f"https://www.themoviedb.org/person/{actor_directory}?credit_department=Acting"
     headers = {'User-Agent': random.choice(user_agents)} # Random User Agent
     s = requests.session() # Initiate new session
-    response = s.get(actor_directory, headers=headers) # Go to link as Random User
+    response = s.get(url, headers=headers) # Go to link as Random User
     if response.status_code == 403: # check for failed connection
         raise Exception("403 Error. Check link, internet, and bot status.")
     data = response.text # raw html from TMDB
@@ -67,7 +70,10 @@ def parse_actor_page(df, actor_directory, user_agents=user_agents):
     
     # Webscraping
     soup = BeautifulSoup(data, 'html.parser') # parse html from TMDB
-    actor = soup.select('.title a')[0].get_text() # extract actor's name
+    try: # Try to get actor's name
+        actor = soup.select('.title a')[0].get_text() # extract actor's name
+    except:
+        raise Exception("Error at actor name")
     if soup.select('.item_adult_true'): # check if movie name is blurred
         print(f"{actor} Does Adult Films! Not Included.")
         return df # return df to skip adding actor to df
@@ -80,6 +86,10 @@ def parse_actor_page(df, actor_directory, user_agents=user_agents):
             'movie_or_TV_name': [movie.get_text()] # movie name
         }) 
         df = pd.concat([df, movie_iter], ignore_index=True) # append row to df
+    if df.empty:
+        pass
+    else:
+        df = df.sort_values(by=["actor","movie_or_TV_name"]).drop_duplicates()
     return df # return df with appended actor-movie/tv rows
     
 def parse_full_credits(movie_directory, user_agents=user_agents):
@@ -89,20 +99,15 @@ def parse_full_credits(movie_directory, user_agents=user_agents):
     appearances.
     ---
     Args:
-        movie_directory: (String)  Movie  TMDB link.
+        movie_directory: (String) Movie  TMDB link.
     Return:
         df: (pd.DataFrame) Actor and Movie combinations DataFrame
     """
-    # Check provided TMDB movie link
-    if not movie_directory.startswith("https://www.themoviedb.org/movie/"): # if not a TMDB movie link
-        raise Exception("Not a TMDB movie. Enter a new cast link.") 
-    if not movie_directory.endswith("/cast"): # check if a movie link
-        movie_directory = f"{movie_directory}/cast" # make it a movie cast link
-    
     # Requesting TMDB movie site
+    url = f"https://www.themoviedb.org/movie/{movie_directory}/cast"
     headers = {'User-Agent': random.choice(user_agents)} # select a user agent
     s = requests.session() # start new session/browser as user agent
-    response = s.get(movie_directory, headers=headers) # get raw html
+    response = s.get(url, headers=headers) # get raw html
     if response.status_code == 403: # If connection failed
         raise Exception("403 Error. Check link, internet, and bot status.")
     data = response.text # Raw html from TMDB
@@ -114,15 +119,62 @@ def parse_full_credits(movie_directory, user_agents=user_agents):
     cast_crud = soup.select(".pad:nth-child(1) a")
     if soup.select('h2')[0].text == "Oops! We can't find the page you're looking for":
         raise Exception("Bad TMDB movie Link") # check for Empty TMDB page
-    cast_link = np.unique([f"https://www.themoviedb.org{link['href']}?credit_department=Acting" 
-                           for link in cast_crud]) # list of actor links
+    cast_link = np.unique([link['href'][8:] for link in cast_crud]) # list of actor links
     
     # Loop through list of actor links an supply to parse_actor_page()
     df = pd.DataFrame(columns=['actor', 'movie_or_TV_name']) # init dict
     for link in cast_link: # loop actor links
-        time.sleep(random.randint(1, 3)) # Rand. Delay between requests
+        time.sleep(random.randint(1, 2)) # Rand. Delay between requests
         df = parse_actor_page(df, link, user_agents) # call parse_actor_page
     
     # Sort and remove duplicates. Occurs when an actor has mulitple role in a movie
-    df = df.sort_values(by=["actor","movie_or_TV_name"]).drop_duplicates()
+    df = df.sort_values(by=["actor","movie_or_TV_name"])
     return df
+
+def show_results(df):
+    """
+    Report df shape, check for duplicates, and show first 5 rows.
+    ---
+    Args:
+        df: (pd.DataFrame) Dataframe with actor and movie_or_TV_name columns
+    Return:
+        None
+    """
+    # Report actor#_df shape, check for duplicates, and show first rows
+    dupe_sum = df.duplicated(['actor', 'movie_or_TV_name']).sum() # sum of duplicates
+    print(f"movie_df Shape: {df.shape}") # report shape
+    print(f"Number of Duplicates: {dupe_sum}") # report duplicates
+    print(df.head()) # report First 5 rows
+
+def plot_results(df, movie, threshold):
+    """
+    Plot actor and movie_or_TV_name dataframe
+    ---
+    Args:
+        df: (pd.DataFrame) Dataframe of actor and movie_or_TV_name
+        movie: (string) Original movie name used to generate the dataframe
+        threshold: (int) Filtering threshold for number of shared actors of a movie 
+    Return:
+        None
+    """
+    # Display dataframe metrics
+    show_results(df) # print results
+    
+    # Preprocessing
+    data = df[df['movie_or_TV_name'] != movie] # filter original movie
+    most = data.value_counts('movie_or_TV_name').index[0] # Highest frequency movie
+    print(f"\n\nThe next movie you should see is: {most}") # Recommendation
+    data = data.groupby('movie_or_TV_name').filter(lambda x: len(x) > threshold) # Threshold filter
+    
+    # Plotting
+    plt.figure(figsize=(15, 5)) # init figure and size
+    ax = sns.countplot( # count plot
+        data=data, 
+        x="movie_or_TV_name",
+        gap=0.5
+    )
+    plt.title("Shared Actor Frequency per Movie") # title
+    plt.ylabel("Frequency") # y title
+    plt.xlabel("Movie Name") # x title
+    plt.xticks(rotation=45, ha='right')
+    plt.show() # show plot
