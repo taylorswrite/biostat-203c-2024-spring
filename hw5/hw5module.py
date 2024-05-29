@@ -1,3 +1,11 @@
+import time # For Sleep
+import random # For Random Generator
+import numpy as np # For Arrays
+import pandas as pd # For DataFrames
+import requests # For requesting website html
+from bs4 import BeautifulSoup # For html parser
+
+## List of User Agents from a github post. Link in Notebook.
 user_agents_github = """Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.2454.85 Safari/537.36
 Mozilla/5.0 (Windows NT 10.0; WOW64; Trident/7.0; Touch; LCJB; rv:11.0) like Gecko
 Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/44.0.2403.125 Safari/537.36
@@ -33,34 +41,46 @@ Mozilla/5.0 (Windows; U; Windows NT 5.1; zh-CN) AppleWebKit/530.19.2 (KHTML, lik
 Mozilla/5.0 (iPhone; CPU iPhone OS 8_4_1 like Mac OS X) AppleWebKit/600.1.4 (KHTML, like Gecko) Mobile/12H321
 Mozilla/5.0 (Linux; U; Android 4.0.3; en-ca; KFTT Build/IML74K) AppleWebKit/537.36 (KHTML, like Gecko) Silk/3.68 like Chrome/39.0.2171.93 Safari/537.36
 Mozilla/5.0 (Windows NT 5.1; rv:30.0) Gecko/20100101 Firefox/30.0"""
+# Convert the long copied string to a list by splitting by new lines.
 user_agents = user_agents_github.split('\n')
 
-def parse_actor_page(movie_df, actor_directory, user_agents=user_agents):
+def parse_actor_page(df, actor_directory, user_agents=user_agents):
     """
     Use the actors TMDB profile link to list movies that actor was a castmember of 
-    and append the actor's name and movie name to movie_df.
+    and append the actor's name and movie name to df.
     ---
     Args:
-        movie_df: (pd.DataFrame) Actor and Movie DataFrame
+        df: (pd.DataFrame) Actor and Movie DataFrame
         actor_directory: (String) Actor's profile TMDB link
     Return:
-        movie_df: (pd.DataFrame) movie_df with appended actor movie combinations
+        df: (pd.DataFrame) df with appended actor movie combinations
     """
-    headers = {'User-Agent': random.choice(user_agents)}
-    s = requests.session()
-    response = s.get(actor_directory, headers=headers)
-    if response.status_code == 403:
-        raise Exception("403 Error. Change User Agents, Request Delay, or Change IP")
-    data = response.text
-    s.cookies.clear()
-    soup = BeautifulSoup(data, 'html.parser') 
-    actor = soup.select('.title a')[0].get_text()
-    movies = soup.select('.tooltip bdi')
+    # Requesting TMDB movie site
+    headers = {'User-Agent': random.choice(user_agents)} # Random User Agent
+    s = requests.session() # Initiate new session
+    response = s.get(actor_directory, headers=headers) # Go to link as Random User
+    if response.status_code == 403: # check for failed connection
+        raise Exception("403 Error. Check link, internet, and bot status.")
+    data = response.text # raw html from TMDB
+    s.cookies.clear() # clear cookies
+    s.close() # close session/browser
+    
+    # Webscraping
+    soup = BeautifulSoup(data, 'html.parser') # parse html from TMDB
+    actor = soup.select('.title a')[0].get_text() # extract actor's name
+    if soup.select('.item_adult_true'): # check if movie name is blurred
+        print(f"{actor} Does Adult Films! Not Included.")
+        return df # return df to skip adding actor to df
+    movies = soup.select('.tooltip bdi') # returns a list of movies
+    
+    # Append the actor's name and movie name to df
     for movie in movies:
-        movie_iter = pd.DataFrame({'actor': [actor], 'movie_or_TV_name': [movie.get_text()]}) 
-        movie_df = pd.concat([movie_df, movie_iter], ignore_index=True)
-    s.close()
-    return movie_df
+        movie_iter = pd.DataFrame({ # convert dict to pd.DataFrame
+            'actor': [actor], # actor's name
+            'movie_or_TV_name': [movie.get_text()] # movie name
+        }) 
+        df = pd.concat([df, movie_iter], ignore_index=True) # append row to df
+    return df # return df with appended actor-movie/tv rows
     
 def parse_full_credits(movie_directory, user_agents=user_agents):
     """
@@ -71,22 +91,38 @@ def parse_full_credits(movie_directory, user_agents=user_agents):
     Args:
         movie_directory: (String)  Movie  TMDB link.
     Return:
-        movie_df: (pd.DataFrame) Actor and Movie combinations DataFrame
+        df: (pd.DataFrame) Actor and Movie combinations DataFrame
     """
-    headers = {'User-Agent': random.choice(user_agents)}
-    s = requests.session()
-    response = s.get(movie_directory, headers=headers)
-    if response.status_code == 403:
-        raise Exception("403 Error. Change User Agents, Request Delay, or Change IP")
-    data = response.text
-    s.cookies.clear()
-    soup = BeautifulSoup(data, 'html.parser')
+    # Check provided TMDB movie link
+    if not movie_directory.startswith("https://www.themoviedb.org/movie/"): # if not a TMDB movie link
+        raise Exception("Not a TMDB movie. Enter a new cast link.") 
+    if not movie_directory.endswith("/cast"): # check if a movie link
+        movie_directory = f"{movie_directory}/cast" # make it a movie cast link
+    
+    # Requesting TMDB movie site
+    headers = {'User-Agent': random.choice(user_agents)} # select a user agent
+    s = requests.session() # start new session/browser as user agent
+    response = s.get(movie_directory, headers=headers) # get raw html
+    if response.status_code == 403: # If connection failed
+        raise Exception("403 Error. Check link, internet, and bot status.")
+    data = response.text # Raw html from TMDB
+    s.cookies.clear() # clear cookies
+    s.close() # close session/browser
+    
+    # Webscraping
+    soup = BeautifulSoup(data, 'html.parser') # parse html from TMDB
+    cast_crud = soup.select(".pad:nth-child(1) a")
+    if soup.select('h2')[0].text == "Oops! We can't find the page you're looking for":
+        raise Exception("Bad TMDB movie Link") # check for Empty TMDB page
     cast_link = np.unique([f"https://www.themoviedb.org{link['href']}?credit_department=Acting" 
-                           for link in cast_crud])
-    movie_df = pd.DataFrame(columns=['actor', 'movie_or_TV_name'])
-    for link in cast_link:
-        time.sleep(random.randint(2, 6))
-        movie_df = parse_actor_page(movie_df, link, user_agents)
-    movie_df = movie_df.sort_values(by=["actor","movie_or_TV_name"]).drop_duplicates()
-    s.close()
-    return movie_df
+                           for link in cast_crud]) # list of actor links
+    
+    # Loop through list of actor links an supply to parse_actor_page()
+    df = pd.DataFrame(columns=['actor', 'movie_or_TV_name']) # init dict
+    for link in cast_link: # loop actor links
+        time.sleep(random.randint(1, 3)) # Rand. Delay between requests
+        df = parse_actor_page(df, link, user_agents) # call parse_actor_page
+    
+    # Sort and remove duplicates. Occurs when an actor has mulitple role in a movie
+    df = df.sort_values(by=["actor","movie_or_TV_name"]).drop_duplicates()
+    return df
