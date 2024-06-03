@@ -124,7 +124,7 @@ def parse_full_credits(movie_directory, user_agents=user_agents):
     # Loop through list of actor links an supply to parse_actor_page()
     df = pd.DataFrame(columns=['actor', 'movie_or_TV_name']) # init dict
     for link in cast_link: # loop actor links
-        time.sleep(random.randint(1, 2)) # Rand. Delay between requests
+        time.sleep(random.randint(1, 5)) # Rand. Delay between requests
         df = parse_actor_page(df, link, user_agents) # call parse_actor_page
     
     # Sort and remove duplicates. Occurs when an actor has mulitple role in a movie
@@ -163,7 +163,7 @@ def plot_results(df, movie, threshold):
     # Preprocessing
     data = df[df['movie_or_TV_name'] != movie] # filter original movie
     most = data.value_counts('movie_or_TV_name').index[0] # Highest frequency movie
-    print(f"\n\nThe next movie you should see is: {most}") # Recommendation
+    print(f"\n\nThe next movie or TV show you should see is: {most}") # Recommendation
     data = data.groupby('movie_or_TV_name').filter(lambda x: len(x) > threshold) # Threshold filter
     
     # Plotting
@@ -173,8 +173,8 @@ def plot_results(df, movie, threshold):
         x="movie_or_TV_name",
         gap=0.5
     )
-    plt.title("Shared Actor Frequency per Movie") # title
-    plt.ylabel("Frequency") # y title
-    plt.xlabel("Movie Name") # x title
+    plt.title("Shared Actor Frequency per Movie/TV Show") # title
+    plt.ylabel("Shared Actor Frequency") # y title
+    plt.xlabel("Movie or TV show Name") # x title
     plt.xticks(rotation=45, ha='right')
     plt.show() # show plot
