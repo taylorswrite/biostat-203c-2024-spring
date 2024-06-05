@@ -467,7 +467,7 @@ plot_results(test2_df, "Dune: Part Two", 4)
 
 # #### Unit Test 3: Second Validation
 
-# In[16]:
+# In[8]:
 
 
 # Test Inputs
@@ -479,13 +479,13 @@ actor3_df = parse_actor_page(df, actor) # test parse_actor_page
 test3_df = parse_full_credits(directory) # test parse_full_credits
 
 
-# In[17]:
+# In[9]:
 
 
 show_results(actor3_df)
 
 
-# In[19]:
+# In[10]:
 
 
 plot_results(test3_df, "The Empire Strikes Back", 8)
