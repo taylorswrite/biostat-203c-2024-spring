@@ -6,4 +6,4 @@
 *.ipynb_checkpoints
 *.csv*
 *.parquet*
-*hw3/mimic*
+*mimic*
