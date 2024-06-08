@@ -291,53 +291,7 @@
 #     df = df.sort_values(by=["actor","movie_or_TV_name"])
 #     return df
 # 
-# def show_results(df):
-#     """
-#     Report df shape, check for duplicates, and show first 5 rows.
-#     ---
-#     Args:
-#         df: (pd.DataFrame) Dataframe with actor and movie_or_TV_name columns
-#     Return:
-#         None
-#     """
-#     # Report actor#_df shape, check for duplicates, and show first rows
-#     dupe_sum = df.duplicated(['actor', 'movie_or_TV_name']).sum() # sum of duplicates
-#     print(f"movie_df Shape: {df.shape}") # report shape
-#     print(f"Number of Duplicates: {dupe_sum}") # report duplicates
-#     print(df.head()) # report First 5 rows
 # 
-# def plot_results(df, movie, threshold):
-#     """
-#     Plot actor and movie_or_TV_name dataframe
-#     ---
-#     Args:
-#         df: (pd.DataFrame) Dataframe of actor and movie_or_TV_name
-#         movie: (string) Original movie name used to generate the dataframe
-#         threshold: (int) Filtering threshold for number of shared actors of a movie 
-#     Return:
-#         None
-#     """
-#     # Display dataframe metrics
-#     show_results(df) # print results
-#     
-#     # Preprocessing
-#     data = df[df['movie_or_TV_name'] != movie] # filter original movie
-#     most = data.value_counts('movie_or_TV_name').index[0] # Highest frequency movie
-#     print(f"\n\nThe next movie you should see is: {most}") # Recommendation
-#     data = data.groupby('movie_or_TV_name').filter(lambda x: len(x) > threshold) # Threshold filter
-#     
-#     # Plotting
-#     plt.figure(figsize=(15, 5)) # init figure and size
-#     ax = sns.countplot( # count plot
-#         data=data, 
-#         x="movie_or_TV_name",
-#         gap=0.5
-#     )
-#     plt.title("Shared Actor Frequency per Movie") # title
-#     plt.ylabel("Frequency") # y title
-#     plt.xlabel("Movie Name") # x title
-#     plt.xticks(rotation=45, ha='right')
-#     plt.show() # show plot
 # ```
 # 
 # <div>
@@ -399,8 +353,10 @@
 # #### Interpreting Data
 # 
 # The dataframe produced by `parse_actor_page` and `parse_full_credits` was preprocessed by filtering out the original movie name and setting a threshold for the total number of shared credited actors. The data was visualized by using matplotlib and seaborn's countplot. Lastly, the movie/TV show with the most shared actors was recomended to the user.
+#     
+# To evaluate the performance of `parse_actor_page` and `parse_full_credits`, 8 test were conducted that tested different conditions. A no internet connection test could not be tested because a cloud computer was used to complete this assignment. Therefore, a 403 error could not be tested.
 
-# In[1]:
+# In[3]:
 
 
 import numpy as np
@@ -409,14 +365,14 @@ import polars as pl
 
 from hw5module import parse_full_credits, parse_actor_page, show_results, plot_results
 
+# Empty dictionary used for all test
+df = pd.DataFrame(columns=['actor', 'movie_or_TV_name']) # init actor df
 
-# #### Unit Test 1: Initial
+
+# #### Test 1: Initial and Known to have duplicates
 
 # In[2]:
 
-
-# Empty dictionary used for all test
-df = pd.DataFrame(columns=['actor', 'movie_or_TV_name']) # init actor df
 
 # Test Inputs
 directory = "786892-furiosa-a-mad-max-saga"
@@ -491,7 +447,7 @@ show_results(actor3_df)
 plot_results(test3_df, "The Empire Strikes Back", 8)
 
 
-# #### Unit Test 4: Test Adult Actor Filter
+# #### Test 4: Test Adult Actor Filter
 
 # In[11]:
 
@@ -528,7 +484,7 @@ for actor in actor_adult:
 plot_results(test4_df, "Don Jon", 3)
 
 
-# #### Unit Test 5: Bad TMDB Directories
+# #### Test 5: Bad TMDB Directories
 
 # In[15]:
 
@@ -548,6 +504,60 @@ try:
     test5_df = parse_full_credits(url) # test error catch
 except Exception:
     print("Error: Bad Movie Directory")
+
+
+# #### Test 6: Crew Section First
+
+# In[11]:
+
+
+# Test Inputs
+actor = "1796507-david-holmes"
+
+# Test webscrape functions
+actor6_df = parse_actor_page(df, actor) # test parse_actor_page
+
+
+# In[12]:
+
+
+show_results(actor6_df)
+
+
+# #### Test 7: Person with No Acting Roles
+
+# In[13]:
+
+
+# Test Inputs
+actor = "2233044-janos-jersch"
+
+# Test webscrape functions
+actor7_df = parse_actor_page(df, actor) # test parse_actor_page
+
+
+# In[14]:
+
+
+show_results(actor7_df)
+
+
+# #### Test 8: Person with Adult Acting Roles
+
+# In[15]:
+
+
+# Test Inputs
+actor = '1197172-mia-malkova'
+
+# Test webscrape functions
+actor8_df = parse_actor_page(df, actor) # test parse_actor_page
+
+
+# In[16]:
+
+
+show_results(actor8_df)
 
 
 # Sources:
