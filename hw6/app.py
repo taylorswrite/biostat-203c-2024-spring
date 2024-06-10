@@ -1,5 +1,23 @@
 from dash import Dash, dcc, html, Output, Input
 import plotly.express as px
+import duckdb
+
+# Init message database
+message_db = None
+
+def get_message_db():
+    global message_db # get current database from global
+    if message_db: # If db not empty
+        return message_db # return the current db
+    else: # If db is empty
+        message_db = sqlite3.connect( # create a db link
+          "messages_db.sqlite", # db name
+          check_same_thread=False # multi-threaded concurancy
+        )
+        cmd = ''
+        cursor = message_db.cursor()
+        cursor.execute(cmd)
+        return message_db
 
 app = Dash(__name__)
 
