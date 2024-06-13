@@ -8,31 +8,27 @@ message_db = None
 
 # Create a messaging database if it doesn't exist
 def get_message_db():
-    global message_db # retrieve database from global
-    if message_db: # if contains values
-        # connect to database
+    global message_db
+    if message_db:
         message_db = sqlite3.connect(
-            "messages_db.sqlite",
-            # Different User Threads can access the same database
+            "messages_db.sqlite", 
             check_same_thread=False
         )
-        return message_db # return the the
+        return message_db
     else:
-        # connect to database
         message_db = sqlite3.connect(
-            "messages_db.sqlite", # open database file
-            # Different User Thread can access the same database
+            "messages_db.sqlite", 
             check_same_thread=False
         )
-        cmd = ( # Create the database if it doesn't exist
+        cmd = (
             """
             CREATE TABLE 
             IF NOT EXISTS message_db (handle TEXT, message TEXT)
             """
         )
-        cursor = message_db.cursor() # open database for executions
-        cursor.execute(cmd) # Execute command
-        return message_db # save the database to variable
+        cursor = message_db.cursor()
+        cursor.execute(cmd)
+        return message_db
 
 def insert_message(username, message): # triggered on submit
     conn = get_message_db() # open database within function
@@ -51,11 +47,13 @@ def random_messages(n):
         f"SELECT * FROM message_db ORDER BY RANDOM() LIMIT {n};"
     )
     rows = cursor.fetchall() # aggregate all 
+    username = list()
     messages = list()
     for row in rows: # iterate over rows
-        messages.append(f"@{row[0]}: {row[1]}")# username column
+        usernames.append(row[0]) # username column
+        messages.append(row[1]) # message column
     conn.close() # close the database
-    return messages # return username and message
+    return usernames, messages # return username and message
 
 def delete_messages():
     conn = get_message_db() # open database within function
@@ -70,8 +68,8 @@ def delete_messages():
 app = Dash(
     __name__, 
     external_stylesheets=[
-        dbc.themes.BOOTSTRAP, # Use bootstrap stylesheet
-        dbc.icons.FONT_AWESOME # Use Font_Awesome icons (for light/dark switch)
+        dbc.themes.BOOTSTRAP, 
+        dbc.icons.FONT_AWESOME
     ]
 )
 
@@ -79,8 +77,20 @@ app = Dash(
 ### UI ELEMENTS
 
 # Headers
-header = html.H1("teamwork messenger", style={
-    "font-family": "Cosmic Sans"}
+header = html.H1("teamwork messenger", #style={
+    # "font-family": "Cosmic Sans",
+    # 'background': '''linear-gradient(
+    #     45deg, 
+    #     #ee0022, 
+    #     #7755ff, 
+    #     #dd1199, 
+    #     #7755ff, 
+    #     #ee0022
+    # )''',
+    # "-webkit-background-clip": "text",
+    # "-webkit-text-fill-color": "transparent",
+    # "-webkit-text-stroke-width": "0.5px",
+    # "-webkit-text-stroke-color": "black"}
 )
 feed_header = html.H4("Message Feed")
 user_header = html.H4("Send a Message")
@@ -134,8 +144,7 @@ delete_button = dbc.Button(
     color="danger"
 )
 
-# Alert messages
-# Green sent notification
+# Alert message
 sent_alert = dbc.Alert(
     "Message Sent!",
     id="sent",
@@ -144,7 +153,7 @@ sent_alert = dbc.Alert(
     duration=3000,
     color="success",
 )
-# Grey updated notification
+
 update_alert = dbc.Alert(
     "All Messages updated.",
     id="updated",
@@ -153,7 +162,7 @@ update_alert = dbc.Alert(
     duration=3000,
     color="secondary",
 )
-# Red input notification 
+
 bad_message_alert = dbc.Alert(
     "A Username and Message is needed.",
     id="error",
@@ -162,7 +171,7 @@ bad_message_alert = dbc.Alert(
     duration=3000,
     color="danger",
 )
-# Red Deleted notification
+
 deleted_alert = dbc.Alert(
     "All messages deleted.",
     id="delete",
@@ -175,13 +184,9 @@ deleted_alert = dbc.Alert(
 # Dark and Light Mode
 color_mode_switch =  html.Span(
     [
-        dbc.Label(className="fa fa-moon", html_for="switch"), # Dark icon
-        dbc.Switch( # switch element that is True or False
-            id="switch", # callback
-            value=True,  # Start at True
-            className="d-inline-block ms-1",  # element calss
-            persistence=True), # Always apearing
-        dbc.Label(className="fa fa-sun", html_for="switch") # Light icon
+        dbc.Label(className="fa fa-moon", html_for="switch"),
+        dbc.Switch( id="switch", value=True, className="d-inline-block ms-1", persistence=True),
+        dbc.Label(className="fa fa-sun", html_for="switch")
     ]
 )
 
@@ -190,8 +195,8 @@ color_mode_switch =  html.Span(
 app.layout = dbc.Container([
     # Header Row 
     dbc.Row([ # 1 of 3 main rows
-        dbc.Col([header], width=6), # column within row and width of column
-        dbc.Col([color_mode_switch], style={'text-align': 'right'}, width=6)
+        dbc.Col([header], width=6), # column within row
+        dbc.Col([color_mode_switch], style={'text-align': 'right'}, width=6) # column within row
     ]),
     
     # Message Row
@@ -273,27 +278,28 @@ def submit(submit_button, username, message): # triggered on submit
     prevent_initial_call=True # Don't Run on startup
 )
 def view(n_clicks): # Triggered by update button
-    messages = random_messages(8) # show the past 8 messages
+    usernames, messages = random_messages(8) # show the past 8 messages
     all_rand_messages = list()
-    for message in messages: # iterate over message dict
+    for i, username in enumerate(usernames): # iterate over message dict
+        message = messages[i]
         all_rand_messages.append( # append html
             html.Div([
-                html.P([message]),
-            ],style={'margin-bottom': '10px'})
+                html.Div(username, style={'font-weight': 'bold'}),
+                html.Div(message)
+            ], style={'margin-bottom': '10px'})
         )
     return all_rand_messages, True
 
-# function callback for deleting database
 @app.callback(
-    Output('delete', 'is_open'), # output deleted notification
-    Input('delete_button', 'n_clicks'), # triggered by delete button
-    prevent_initial_call=True # Dont run on startup
+    Output('delete', 'is_open'),
+    Input('delete_button', 'n_clicks'),
+    prevent_initial_call=True
 )
 def delete(n_clicks):
     delete_messages()
-    return True # output deleted notification
+    return True
 
 
-# Run the app
+# Run the app on port 8051
 if __name__ == '__main__':
-    app.run_server(debug=False, port=8050)
+    app.run_server(debug=True, port=8051)
